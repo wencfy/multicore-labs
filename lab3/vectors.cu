@@ -6,7 +6,7 @@
 #define RANGE 17.78
 
 /*** TODO: insert the declaration of the kernel function below this line ***/
-__global__ void vecGPU(const float *a, const float *b, float *c, int n);
+__global__ void vecGPU(const float *a, const float *b, float *c, int n, int threads);
 /**** end of the kernel declaration ***/
 
 int main(int argc, char *argv[]) {
@@ -88,9 +88,9 @@ int main(int argc, char *argv[]) {
 		   you need to decide about the number of threads, blocks, etc and their geometry.
 	*/
 	dim3 threadsPerBlock(500);
-	dim3 numBlocks(4);
+	dim3 numBlocks(8);
 
-	vecGPU<<<threadsPerBlock, numBlocks>>>(ad, bd, cd, n);
+	vecGPU<<<threadsPerBlock, numBlocks>>>(ad, bd, cd, n, threadsPerBlock.x * numBlocks.x);
 
 	end = clock();
 	/* TODO:
@@ -120,9 +120,9 @@ int main(int argc, char *argv[]) {
 }
 
 /**** TODO: Write the kernel itself below this line *****/
-__global__ void vecGPU(const float *a, const float *b, float *c, int n) {
+__global__ void vecGPU(const float *a, const float *b, float *c, int n, int threads) {
 	int index = blockIdx.x * blockDim.x + threadIdx.x;
-    if (index < n) {
-        c[index] += a[index] * b[index];
-    }
+	for (int i = index; i < n; i += threads) {
+		c[i] += a[i] * b[i];
+	}
 }
