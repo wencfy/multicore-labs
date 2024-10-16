@@ -75,12 +75,12 @@ int main(int argc, char *argv[]) {
 	cudaMalloc(&ad, n * sizeof(float));
 	cudaMalloc(&bd, n * sizeof(float));
 	cudaMalloc(&cd, n * sizeof(float));
+	
+	start = clock();
 
 	cudaMemcpy(ad, a, n * sizeof(float), cudaMemcpyHostToDevice);
 	cudaMemcpy(bd, b, n * sizeof(float), cudaMemcpyHostToDevice);
 	cudaMemcpy(cd, c, n * sizeof(float), cudaMemcpyHostToDevice);
-
-	start = clock();
 
 	/* TODO:
 		3. write the kernel, call it: vecGPU
