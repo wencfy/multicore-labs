@@ -97,12 +97,12 @@ int main(int argc, char * argv[])
   
   printf("Time taken = %lf\n", time_taken);
 
-  for (int i = 0; i < N; i++) {
-    for (int j = 0; j < N; j++) {
-      printf("%f ", playground[index(i, j, N)]);
-    }
-    printf("\n");
-  }
+  // for (int i = 0; i < N; i++) {
+  //   for (int j = 0; j < N; j++) {
+  //     printf("%f ", playground[index(i, j, N)]);
+  //   }
+  //   printf("\n");
+  // }
   
   free(playground);
   
