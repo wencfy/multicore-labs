@@ -96,6 +96,13 @@ int main(int argc, char * argv[])
   time_taken = ((double)(end - start))/ CLOCKS_PER_SEC;
   
   printf("Time taken = %lf\n", time_taken);
+
+  for (int i = 0; i < N; i++) {
+    for (int j = 0; j < N; j++) {
+      printf("%f ", playground[index(i, j, N)]);
+    }
+    printf("\n");
+  }
   
   free(playground);
   
@@ -148,13 +155,59 @@ void  seq_heat_dist(float * playground, unsigned int N, unsigned int iterations)
 }
 
 /***************** The GPU version: Write your code here *********************/
+__global__ void heat_dist(float *playground, float *dst, unsigned int N, unsigned int NTHREADS) {
+  int upper = N-1;
+  int MX = N*N;
+  int idx = blockIdx.x * blockDim.x + threadIdx.x;
+
+  for (int k = idx; k < MX; k += NTHREADS) {
+    int i = k / N;
+    int j = k % N;
+    if (i != 0 && j != 0 && i != upper && j != upper) {
+      dst[k] = (
+        playground[k - 1] + 
+        playground[k + 1] + 
+        playground[k - N] + 
+        playground[k + N]
+      ) / 4.0;
+    }
+  }
+}
+
+// __global__ void copy(float *src, float *dst, unsigned int LENGTH, unsigned int NTHREADS) {
+//   int idx = blockIdx.x * blockDim.x + threadIdx.x;
+//   for (int i = idx; i < LENGTH; i += NTHREADS) {
+// 		dst[i] = src[i];
+// 	}
+// }
 /* This function can call one or more kernels if you want ********************/
-void  gpu_heat_dist(float * playground, unsigned int N, unsigned int iterations)
+void  gpu_heat_dist(float *playground, unsigned int N, unsigned int iterations)
 {
   
   /* Here you have to write any cuda dynamic allocations, any communications between device and host, any number of kernel
      calls, etc. */
-  
+  int num_bytes = N*N*sizeof(float);
+  float *CUDA_tmp, *CUDA_playground;
+  cudaMalloc(&CUDA_tmp, num_bytes);
+  cudaMalloc(&CUDA_playground, num_bytes);
+
+  cudaMemcpy(CUDA_tmp, playground, num_bytes, cudaMemcpyHostToDevice);
+  cudaMemcpy(CUDA_playground, playground, num_bytes, cudaMemcpyHostToDevice);
+
+  dim3 threadsPerBlock(500);
+	dim3 numBlocks(8);
+  unsigned int NTHREADS = threadsPerBlock.x * numBlocks.x;
+  for (int k = 0; k < iterations; k++) {
+    heat_dist<<<threadsPerBlock, numBlocks>>>(CUDA_playground, CUDA_tmp, N, NTHREADS);
+    cudaDeviceSynchronize();
+    float *tmp = CUDA_playground;
+    CUDA_playground = CUDA_tmp;
+    CUDA_tmp = tmp;
+  }
+
+  cudaMemcpy(playground, CUDA_playground, num_bytes, cudaMemcpyDeviceToHost);
+  cudaFree(CUDA_playground);
+  cudaFree(CUDA_tmp);
 }
 
 
