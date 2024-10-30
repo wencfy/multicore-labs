@@ -97,6 +97,7 @@ int main(int argc, char * argv[])
   
   printf("Time taken = %lf\n", time_taken);
 
+  // UNCOMMENT THIS TO CHECK THE ANSWER AND COMPARE TO CPU ANSWERS.
   // for (int i = 0; i < N; i++) {
   //   for (int j = 0; j < N; j++) {
   //     printf("%f ", playground[index(i, j, N)]);
@@ -174,6 +175,7 @@ __global__ void heat_dist(float *playground, float *dst, unsigned int N, unsigne
   }
 }
 
+// NOT USED!! COPY FROM ONE PLAYGROUND TO ANOTHER.
 // __global__ void copy(float *src, float *dst, unsigned int LENGTH, unsigned int NTHREADS) {
 //   int idx = blockIdx.x * blockDim.x + threadIdx.x;
 //   for (int i = idx; i < LENGTH; i += NTHREADS) {
@@ -194,8 +196,8 @@ void  gpu_heat_dist(float *playground, unsigned int N, unsigned int iterations)
   cudaMemcpy(CUDA_tmp, playground, num_bytes, cudaMemcpyHostToDevice);
   cudaMemcpy(CUDA_playground, playground, num_bytes, cudaMemcpyHostToDevice);
 
-  dim3 threadsPerBlock(500);
-	dim3 numBlocks(8);
+  dim3 threadsPerBlock(256);
+	dim3 numBlocks(1600);
   unsigned int NTHREADS = threadsPerBlock.x * numBlocks.x;
   for (int k = 0; k < iterations; k++) {
     heat_dist<<<threadsPerBlock, numBlocks>>>(CUDA_playground, CUDA_tmp, N, NTHREADS);
